@@ -61,7 +61,7 @@ publishMods {
     version = rootProject.mod_version
     type = STABLE
     modLoaders.add("fabric")
-    modLoaders.add("neoforge")
+    //modLoaders.add("neoforge")
 
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")

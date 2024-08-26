@@ -5,6 +5,8 @@ import me.thosea.badoptimizations.interfaces.EntityMethods;
 import me.thosea.badoptimizations.interfaces.EntityTypeMethods;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.state.EntityRenderState;
+import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.SkinTextures.Model;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -22,17 +24,17 @@ import java.util.Map.Entry;
 
 @Mixin(value = EntityRenderDispatcher.class, priority = 700)
 public abstract class MixinEntityRendererDispatcher {
-	@Shadow private Map<EntityType<?>, EntityRenderer<?>> renderers;
-	@Shadow private Map<Model, EntityRenderer<? extends PlayerEntity>> modelRenderers;
+	@Shadow private Map<EntityType<?>, EntityRenderer<?, ?>> renderers;
+	@Shadow private Map<Model, EntityRenderer<? extends PlayerEntity, ? extends PlayerEntityRenderState>> modelRenderers;
 
 	@Overwrite
-	public <T extends Entity & EntityMethods> EntityRenderer<? super T> getRenderer(T entity) {
+	public <T extends Entity & EntityMethods, S extends EntityRenderState> EntityRenderer<? super T, S> getRenderer(T entity) {
 		return entity.bo$getRenderer();
 	}
 
 	@Inject(method = "reload", at = @At("RETURN"))
 	private void afterReload(ResourceManager manager, CallbackInfo ci) {
-		for(Entry<EntityType<?>, EntityRenderer<?>> entry : renderers.entrySet()) {
+		for(Entry<EntityType<?>, EntityRenderer<?, ?>> entry : renderers.entrySet()) {
 			((EntityTypeMethods) entry.getKey()).bo$setRenderer(entry.getValue());
 		}
 
