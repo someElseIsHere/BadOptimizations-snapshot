@@ -4,6 +4,8 @@ import me.thosea.badoptimizations.interfaces.BiomeSkyColorGetter;
 import me.thosea.badoptimizations.other.CommonColorFactors;
 import me.thosea.badoptimizations.other.Config;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
@@ -35,14 +37,14 @@ public abstract class MixinClientWorld extends World {
 	private BiomeSkyColorGetter bo$biomeColors;
 	private CommonColorFactors bo$commonFactors;
 
-	private Vec3d bo$skyColorCache;
+	private int bo$skyColorCache;
 
 	private int bo$lastBiomeColor;
 	private Vec3d bo$biomeColorVector;
 
 	@Inject(method = "getSkyColor", at = @At("HEAD"), cancellable = true)
-	private void onGetSkyColor(Vec3d cameraPos, float tickDelta, CallbackInfoReturnable<Vec3d> cir) {
-		if(bo$skyColorCache == null || client.player == null) return;
+	private void onGetSkyColor(Vec3d cameraPos, float tickDelta, CallbackInfoReturnable<Integer> cir) {
+		if(client.player == null) return;
 
 		CommonColorFactors.tick();
 
@@ -56,7 +58,6 @@ public abstract class MixinClientWorld extends World {
 				bo$commonFactors.updateLastTime();
 			}
 		}
-
 		cir.setReturnValue(bo$skyColorCache);
 	}
 
@@ -77,9 +78,8 @@ public abstract class MixinClientWorld extends World {
 		return false;
 	}
 
-	@Shadow public abstract int getLightningTicksLeft();
 
-	private Vec3d bo$calcSkyColor(float delta) {
+	private int bo$calcSkyColor(float delta) {
 		float angle = MathHelper.cos(getSkyAngle(1.0f) * 6.2831855F) * 2.0F + 0.5F;
 		angle = MathHelper.clamp(angle, 0.0F, 1.0F);
 
@@ -113,16 +113,24 @@ public abstract class MixinClientWorld extends World {
 			z = z * (1.0F - lightningMultiplier) + lightningMultiplier;
 		}
 
-		return new Vec3d(x, y, z);
+		int r = (int) (x * 255);
+		int g = (int) (y * 255);
+		int b = (int) (z * 255);
+
+		int rgb = r;
+		rgb = (rgb << 8) + g;
+		rgb = (rgb << 8) + b;
+
+		return rgb;
 	}
 
 	@Inject(method = "getSkyColor", at = @At("RETURN"))
-	private void afterGetSkyColor(Vec3d cameraPos, float tickDelta, CallbackInfoReturnable<Vec3d> cir) {
+	private void afterGetSkyColor(Vec3d cameraPos, float tickDelta, CallbackInfoReturnable<Integer> cir) {
 		bo$skyColorCache = cir.getReturnValue();
 	}
 
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void afterInit(CallbackInfo ci) {
+	private void afterInit(ClientPlayNetworkHandler networkHandler, ClientWorld.Properties properties, RegistryKey registryRef, RegistryEntry dimensionType, int loadDistance, int simulationDistance, Supplier profiler, WorldRenderer worldRenderer, boolean debugWorld, long seed, int i, CallbackInfo ci) {
 		bo$commonFactors = CommonColorFactors.SKY_COLOR;
 		bo$lastBiomeColor = Integer.MIN_VALUE;
 		bo$biomeColorVector = Vec3d.ZERO;

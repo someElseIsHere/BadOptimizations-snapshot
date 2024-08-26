@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(value = WorldRenderer.class, priority = 700)
 public abstract class MixinWorldRenderer {
 	@WrapOperation(method = "renderSky",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/client/world/ClientWorld;getSkyAngle(F)F", ordinal = 0))
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/client/world/ClientWorld;getSkyAngleRadians(F)F", ordinal = 0))
 	private float cacheSkyAngle(ClientWorld world, float delta, Operation<Float> original,
 	                            @Share("skyAngle") LocalFloatRef skyAngle) {
 		float result = original.call(world, delta);
