@@ -13,7 +13,7 @@
     "badoptimizations.mixins.json"
   ],
   "depends": {
-    "minecraft": "24w34a",
+    "minecraft": "1.21.2-alpha.24.34.a",
     "fabricloader": ">=0.16.2"
   },
   "custom": {
