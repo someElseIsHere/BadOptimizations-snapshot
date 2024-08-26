@@ -78,7 +78,6 @@ public abstract class MixinClientWorld extends World {
 	}
 
 	@Shadow public abstract int getLightningTicksLeft();
-	@Shadow public abstract Vec3d getSkyColor(Vec3d cameraPos, float tickDelta);
 
 	private Vec3d bo$calcSkyColor(float delta) {
 		float angle = MathHelper.cos(getSkyAngle(1.0f) * 6.2831855F) * 2.0F + 0.5F;
